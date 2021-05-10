@@ -1,0 +1,312 @@
+---
+title: "JMCNA 2021 - Data collection"
+runtime : shiny
+output: 
+  flexdashboard::flex_dashboard:
+    # theme: cerulean
+    orientation: rows
+    vertical_layout: scroll
+    social : ["twitter","linkedin", "menu"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE)
+library(flexdashboard)
+library(lubridate)
+library(shiny)
+library(leaflet)
+library(leaflet.extras)
+library(readxl)
+
+# library(dygraphs)
+# library(xts)
+# library(scales)
+library(plotly)
+library(DT)
+# library(tmaptools)
+# library(tmap)
+# library(sf)
+library(tidyverse)
+# library(writexl)
+# library(knitr)
+# library(RColorBrewer)
+# library(viridisLite)
+
+
+```
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+source("Functions.R")
+data_all <- read.csv("input/rawdata.csv",stringsAsFactors = F)
+data <- head(data_all,9500)
+target_region <- read.csv("input/target_region.csv",stringsAsFactors = F)
+target_district <- read.csv("input/target_district.csv",stringsAsFactors = F)
+
+```
+
+
+Main
+=====================================
+
+Row
+-----------------------------------------------------------------------
+
+### Conducted surveys
+```{r}
+valueBox(length(data$X_uuid),
+         icon = "fa-file-text")
+```
+
+### National target
+
+```{r}
+rate <- computeSurveyRate(data,sum(target_district$target))
+gauge(rate, min = 0, max = 100, symbol = '%', gaugeSectors(
+  success = c(80, 100), warning = c(40, 79), danger = c(0, 39)
+))
+```
+
+
+### district covered
+```{r}
+valueBox(length(unique(data$district)),
+         icon = "fa-thumb-tack")
+```
+
+
+### Average survey duration
+```{r}
+
+valueBox(paste(computeDurationAverage(data)," Minutes"),
+         icon = "fa-clock-o")
+```
+
+
+
+Row {data-heigth=650}
+-----------------------------------------------------------------------
+
+
+### Surveys submission overview - ALL
+
+```{r}
+
+p1 <- data %>% 
+  group_by(region) %>% 
+  summarise(count = n()) %>% 
+  left_join(target_region %>% 
+  select(region, total = target)) %>% 
+  plot_ly( x = ~region,
+           y = ~count,
+           # color='blue',
+           # text=c('A','B','C','D','B','C','D','A','A'),
+           # textposition = 'auto',
+           type='bar',
+           name= "Conducted surveys"
+           ) %>%
+  add_trace(y = ~total, name = 'Remaining surveys') %>%
+  layout(xaxis= list(title="Region"),
+         yaxis= list(title="Surveys count"),
+         barmode = 'stack')
+p1
+```
+
+Row {data-heigth=650}
+-----------------------------------------------------------------------
+
+
+### Surveys submission overview - IDP
+
+```{r}
+
+p1 <- data %>% filter(idp_settlement == "yes") %>%
+  group_by(region) %>% 
+  summarise(count = n()) %>% 
+  left_join(target_region %>% 
+  select(region, total = idp)) %>% 
+  plot_ly( x = ~region,
+           y = ~count,
+           # color='blue',
+           # text=c('A','B','C','D','B','C','D','A','A'),
+           # textposition = 'auto',
+           type='bar',
+           name= "Conducted surveys"
+           ) %>%
+  add_trace(y = ~total, name = 'Remaining surveys') %>%
+  layout(xaxis= list(title="Region"),
+         yaxis= list(title="Surveys count"),
+         barmode = 'stack')
+p1
+```
+
+### Surveys submission overview - Non IDP
+
+```{r}
+
+p1 <- data %>% filter(idp_settlement == "no")  %>%
+  group_by(region) %>% 
+  summarise(count = n()) %>% 
+  left_join(target_region %>% 
+  select(region, total = non_idp)) %>% 
+  plot_ly( x = ~region,
+           y = ~count,
+           # color='blue',
+           # text=c('A','B','C','D','B','C','D','A','A'),
+           # textposition = 'auto',
+           type='bar',
+           name= "Conducted surveys"
+           ) %>%
+  add_trace(y = ~total, name = 'Remaining surveys') %>%
+  layout(xaxis= list(title="Region"),
+         yaxis= list(title="Surveys count"),
+         barmode = 'stack')
+p1
+```
+
+All {data-navmenu="Region"}
+=====================================
+
+### Surveys submission overview - Partner
+
+```{r}
+
+  datatable(
+    data=data %>% group_by(region) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_region %>% 
+    select(region, Target = target)) %>% 
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+ 
+  
+
+
+```
+
+IDP {data-navmenu="Region"}
+=====================================
+
+### Surveys submission overview - Partner
+
+```{r}
+
+  datatable(
+ 
+    data=data %>% filter(idp_settlement == "yes") %>% group_by(region) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_region %>% 
+    select(region, Target = idp)) %>% 
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+ 
+  
+
+
+```
+
+
+Non IDP {data-navmenu="Region"}
+=====================================
+
+### Surveys submission overview - Partner
+
+```{r}
+
+  datatable(
+    data=data %>% filter(idp_settlement == "no") %>% group_by(region) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_region %>% 
+    select(region, Target = non_idp)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+ 
+  
+
+
+```
+
+Districts 
+=====================================
+
+Column {.sidebar}
+-------------------------------------
+```{r}
+selectInput("RegionFilter",
+            "Regions:",
+            choices = c("All",unique(data$region)))
+
+```
+
+
+
+Column {}
+-------------------------------------
+```{r}
+
+
+DT::renderDataTable({
+        if(input$RegionFilter != "All"){
+          datatable(
+    data= data %>% filter(region == input$RegionFilter )%>% group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }
+        else if(input$RegionFilter == "All"){
+          datatable(
+    data= data %>% group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }   
+    }) 
+
+  
+  
+```
+
