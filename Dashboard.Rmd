@@ -17,7 +17,7 @@ library(shiny)
 library(leaflet)
 library(leaflet.extras)
 library(readxl)
-
+library(httr)
 # library(dygraphs)
 # library(xts)
 # library(scales)
@@ -36,15 +36,41 @@ library(tidyverse)
 ```
 
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r setup kobo connection, warning=FALSE, include=FALSE}
+
+
 source("Functions.R")
-data_all <- read.csv("input/rawdata.csv",stringsAsFactors = F)
+url <-"https://kc.humanitarianresponse.info/api/v1/data.csv" ## Do not change this 
+kobo_user <-  "reachsomalia" ## kobo user 
+kobo_pw <- "ReachSom2020" ## kobo password 
+d_formlist_csv <- as.data.frame(kobohr_getforms_csv (url,kobo_user, kobo_pw)) ## Run this to get the list of deployed tool 
+form_id <-  "140646" ## Check the d_formlist_csv dataframe to get the correct form id
+dataurl<- paste0("https://kc.humanitarianresponse.info/api/v1/data/",form_id,".csv") ## Do not change this 
+
+df <- download_data(dataurl,kobo_user,kobo_pw)
+colnames(df) <- gsub('^(?:[^/]*/)*(.*)', '\\1', colnames(df)) ## Removing group names from header
+
+```
+
+```{r Loading sampling files, message=FALSE, warning=FALSE, include=FALSE}
+
+## data_all and data are test datasets, use the dataframe downloaded from the server (df).
+## Make sure that the columns name are the same, if not I suggest that you change the naming in the dataset and keep
+## the code as it is. An easy way around this is to use the rename function:
+##################################################X
+# df %>% 
+#  rename(
+#    new_name = old_name,
+#    new_name2 = old_name2
+#    )
+##################################################X
+
+data_all <- read.csv("input/rawdata.csv",stringsAsFactors = F) 
 data <- head(data_all,9500)
 target_region <- read.csv("input/target_region.csv",stringsAsFactors = F)
 target_district <- read.csv("input/target_district.csv",stringsAsFactors = F)
 
 ```
-
 
 Main
 =====================================
@@ -71,7 +97,7 @@ gauge(rate, min = 0, max = 100, symbol = '%', gaugeSectors(
 ### district covered
 ```{r}
 valueBox(length(unique(data$district)),
-         icon = "fa-thumb-tack")
+         icon = "fa-globe")
 ```
 
 
@@ -164,7 +190,7 @@ p1 <- data %>% filter(idp_settlement == "no")  %>%
 p1
 ```
 
-All {data-navmenu="Region"}
+All {data-navmenu="Regions"}
 =====================================
 
 ### Surveys submission overview - Partner
@@ -192,7 +218,7 @@ All {data-navmenu="Region"}
 
 ```
 
-IDP {data-navmenu="Region"}
+IDP {data-navmenu="Regions"}
 =====================================
 
 ### Surveys submission overview - Partner
@@ -222,7 +248,7 @@ IDP {data-navmenu="Region"}
 ```
 
 
-Non IDP {data-navmenu="Region"}
+Non IDP {data-navmenu="Regions"}
 =====================================
 
 ### Surveys submission overview - Partner
@@ -250,13 +276,13 @@ Non IDP {data-navmenu="Region"}
 
 ```
 
-Districts 
+All {data-navmenu="Districts"}
 =====================================
 
 Column {.sidebar}
 -------------------------------------
 ```{r}
-selectInput("RegionFilter",
+selectInput("RegionFilterA",
             "Regions:",
             choices = c("All",unique(data$region)))
 
@@ -270,9 +296,9 @@ Column {}
 
 
 DT::renderDataTable({
-        if(input$RegionFilter != "All"){
+        if(input$RegionFilterA != "All"){
           datatable(
-    data= data %>% filter(region == input$RegionFilter )%>% group_by(district) %>% 
+    data= data %>% filter(region == input$RegionFilterA )%>% group_by(district) %>% 
     summarise(Submission = n()) %>% 
     left_join(target_district %>% 
     select(district = District_xml, Target = target)) %>%  
@@ -287,7 +313,7 @@ DT::renderDataTable({
       c(25,50,75), 
       c("red","orange","yellow","lightgreen")))
         }
-        else if(input$RegionFilter == "All"){
+        else if(input$RegionFilterA == "All"){
           datatable(
     data= data %>% group_by(district) %>% 
     summarise(Submission = n()) %>% 
@@ -309,4 +335,173 @@ DT::renderDataTable({
   
   
 ```
+
+IDP {data-navmenu="Districts"}
+=====================================
+
+Column {.sidebar}
+-------------------------------------
+```{r}
+selectInput("RegionFilterB",
+            "Regions:",
+            choices = c("All",unique(data$region)))
+
+```
+
+
+
+Column {}
+-------------------------------------
+```{r}
+
+
+DT::renderDataTable({
+        if(input$RegionFilterB != "All"){
+          datatable(
+    data= data %>% filter(idp_settlement == "yes") %>% filter(region == input$RegionFilterB )%>% group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }
+        else if(input$RegionFilterB == "All"){
+          datatable(
+    data= data %>%  filter(idp_settlement == "yes") %>%  group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }   
+    }) 
+
+  
+  
+```
+
+Non IDP {data-navmenu="Districts"}
+=====================================
+
+Column {.sidebar}
+-------------------------------------
+```{r}
+selectInput("RegionFilterC",
+            "Regions:",
+            choices = c("All",unique(data$region)))
+
+```
+
+
+
+Column {}
+-------------------------------------
+```{r}
+
+
+DT::renderDataTable({
+        if(input$RegionFilterC != "All"){
+          datatable(
+    data= data %>% filter(idp_settlement == "no") %>% filter(region == input$RegionFilterC )%>% group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }
+        else if(input$RegionFilterC == "All"){
+          datatable(
+    data= data %>%  filter(idp_settlement == "no") %>% group_by(district) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_district %>% 
+    select(district = District_xml, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
+  
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        }   
+    }) 
+
+  
+  
+```
+
+<!--
+Maps {}
+=====================================
+
+Column {data-height = 200}
+-------------------------------------------------
+
+### Map 
+
+```{r, fig.height=9, fig.width=20}
+
+df2 <- read.csv("input/gps.csv",stringsAsFactors = F)
+df2 %>% mutate(
+  map_label = paste(region, "_", district, "_", settlement),
+          circle_uuid = X_uuid ) %>%  
+  leaflet() %>% addTiles() %>% 
+  addCircleMarkers(lng= ~X_observation_gps_longitude,
+                   lat= ~X_observation_gps_latitude,
+                   clusterOptions = markerClusterOptions(),
+                   popup = ~ map_label,
+                   label = ~ map_label,
+                   group = 'circle_uuid',
+                   
+                   ) %>%
+  addResetMapButton() %>%
+  
+  addSearchFeatures(
+    targetGroups = 'district',
+    options = searchFeaturesOptions(
+      zoom=12, openPopup = TRUE, firstTipSubmit = TRUE,
+      autoCollapse = FALSE, hideMarkerOnCollapse = TRUE )
+  ) %>%
+  
+  addMiniMap(toggleDisplay = TRUE) %>%
+  addTiles() %>% 
+  addMeasure(position = "bottomleft", 
+             primaryLengthUnit = "meters",
+             primaryAreaUnit = "sqmeters",
+             activeColor = "#3D535D",
+             completedColor = "#7D4479")
+ 
+  
+
+
+
+```
+
+-->
 
