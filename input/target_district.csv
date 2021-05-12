@@ -1,74 +1,74 @@
-﻿District,District_xml,non_idp,idp,target
-Abdulaziz,abdulaziz,75,76,151
-Afgooye,afgooye,79,79,158
-Afmadow,afmadow,79,74,153
-Baardheere,baardheere,79,78,157
-Badhan,badhan,68,0,68
-Baidoa,baidoa,79,79,158
-Baki,baki,79,74,153
-Balcad,balcad,79,0,79
-Bandarbayla,bandarbayla,75,0,75
-Belet Xaawo,belet_xaawo,79,78,157
-Beletweyne,belet_weyne,79,79,158
-Berbera,berbera,79,78,157
-Boondheere,boondheere,76,73,149
-Borama,borama,79,76,155
-Bossaso,bossaso,79,79,158
-Burco,burco,79,79,158
-Burtinle,burtinle,78,72,150
-Buuhoodle,buuhoodle,79,78,157
-Buur Hakaba,buur_hakaba,79,0,79
-Cabudwaaq,cabudwaaq,79,78,157
-Cadaado,cadaado,79,78,157
-Caynabo,caynabo,79,78,157
-Ceel Afweyn,ceel_afweyn,79,76,155
-Ceel Barde,ceel_barde,79,64,143
-Ceel Waaq,ceel_waaq,79,71,150
-Ceerigaabo,ceerigaabo,79,78,157
-Daynile,daynile,79,79,158
-Dharkenley,dharkenley,79,79,158
-Dhuusamarreeb,dhuusamarreeb,79,78,157
-Doolow,doolow,79,79,158
-Eyl,eyl,78,0,78
-gaalkacyo north,gaalkacyo_north,79,79,158
-gaalkacyo south,gaalkacyo_south,79,79,158
-Galdogob,galdogob,79,74,153
-Garbahaarey,garbahaarey,79,76,155
-Garowe,garowe,79,79,158
-Gebiley,gebiley,79,78,157
-Hamar Jaab Jab,hamar_jaab_jab,78,74,152
-Hamar Weyne,hamar_weyne,75,78,153
-Hargeysa,hargeysa,79,79,158
-Hawl Wadaag,hawl_wadaag,78,76,154
-Hobyo,hobyo,79,58,137
-Hodan,hodan,79,79,158
-Iskushuban,iskushuban,79,0,79
-Jariiban,jariiban,79,0,79
-Jowhar,jowhar,79,79,158
-Kahda,kahda,79,79,158
-Karaan,karaan,79,53,132
-Kismayo,kismayo,79,79,158
-Laas Caanood,laas_caanood,79,78,157
-Laasqoray,laasqoray,79,76,155
-Lughaye,lughaye,79,78,157
-Luuq,luuq,79,76,155
-Marka,marka,79,78,157
-Mataban,mataban,78,0,78
-Owdweyne,owdweyne,79,78,157
-Qardho,qardho,79,78,157
-Qoryooley,qoryooley,79,0,79
-Shangaani,shangaani,74,73,147
-Sheikh,sheikh,79,76,155
-Shibis,shibis,78,72,150
-Taleex,taleex,79,0,79
-Waaberi,waaberi,79,74,153
-Waajid,waajid,78,68,146
-Wadajir,wadajir,79,78,157
-Wanla Weyn,wanla_weyn,79,69,148
-Wardhiigleey,wardhiigleey,79,78,157
-Xudun,xudun,78,74,152
-Diinsoor,diinsoor,0,75,75
-Xudur,xudur,79,76,155
-Jilib,jilib,0,45,45
-Yaaqshiid,yaaqshiid,0,75,75
-Zeylac,zeylac,79,71,150
+﻿District,District_xml,non_idp,idp,target,admin2Pcod
+Abdulaziz,abdulaziz,75,76,151,#N/A
+Afgooye,afgooye,79,79,158,SO2302
+Afmadow,afmadow,79,74,153,SO2802
+Baardheere,baardheere,79,78,157,SO2602
+Badhan,badhan,68,0,68,#N/A
+Baidoa,baidoa,79,79,158,SO2401
+Baki,baki,79,74,153,SO1102
+Balcad,balcad,79,0,79,SO2103
+Bandarbayla,bandarbayla,75,0,75,SO1602
+Belet Xaawo,belet_xaawo,79,78,157,SO2603
+Beletweyne,belet_weyne,79,79,158,SO2001
+Berbera,berbera,79,78,157,SO1202
+Boondheere,boondheere,76,73,149,#N/A
+Borama,borama,79,76,155,SO1101
+Bossaso,bossaso,79,79,158,SO1601
+Burco,burco,79,79,158,SO1301
+Burtinle,burtinle,78,72,150,SO1702
+Buuhoodle,buuhoodle,79,78,157,SO1302
+Buur Hakaba,buur_hakaba,79,0,79,SO2402
+Cabudwaaq,cabudwaaq,79,78,157,SO1902
+Cadaado,cadaado,79,78,157,SO1903
+Caynabo,caynabo,79,78,157,SO1402
+Ceel Afweyn,ceel_afweyn,79,76,155,SO1502
+Ceel Barde,ceel_barde,79,64,143,SO2502
+Ceel Waaq,ceel_waaq,79,71,150,SO2604
+Ceerigaabo,ceerigaabo,79,78,157,SO1501
+Daynile,daynile,79,79,158,#N/A
+Dharkenley,dharkenley,79,79,158,#N/A
+Dhuusamarreeb,dhuusamarreeb,79,78,157,SO1901
+Diinsoor,diinsoor,0,75,75,SO2403
+Doolow,doolow,79,79,158,SO2605
+Eyl,eyl,78,0,78,SO1703
+gaalkacyo north,gaalkacyo_north,79,79,158,SO1801
+gaalkacyo south,gaalkacyo_south,79,79,158,SO1801
+Galdogob,galdogob,79,74,153,SO1802
+Garbahaarey,garbahaarey,79,76,155,SO2601
+Garowe,garowe,79,79,158,SO1701
+Gebiley,gebiley,79,78,157,SO1203
+Hamar Jaab Jab,hamar_jaab_jab,78,74,152,#N/A
+Hamar Weyne,hamar_weyne,75,78,153,#N/A
+Hargeysa,hargeysa,79,79,158,SO1201
+Hawl Wadaag,hawl_wadaag,78,76,154,#N/A
+Hobyo,hobyo,79,58,137,SO1803
+Hodan,hodan,79,79,158,#N/A
+Iskushuban,iskushuban,79,0,79,SO1604
+Jariiban,jariiban,79,0,79,SO1804
+Jilib,jilib,0,45,45,SO2702
+Jowhar,jowhar,79,79,158,SO2101
+Kahda,kahda,79,79,158,#N/A
+Karaan,karaan,79,53,132,#N/A
+Kismayo,kismayo,79,79,158,SO2801
+Laas Caanood,laas_caanood,79,78,157,SO1401
+Laasqoray,laasqoray,79,76,155,SO1503
+Lughaye,lughaye,79,78,157,SO1103
+Luuq,luuq,79,76,155,SO2606
+Marka,marka,79,78,157,SO2301
+Mataban,mataban,78,0,78,#N/A
+Owdweyne,owdweyne,79,78,157,SO1303
+Qardho,qardho,79,78,157,SO1606
+Qoryooley,qoryooley,79,0,79,SO2305
+Shangaani,shangaani,74,73,147,#N/A
+Sheikh,sheikh,79,76,155,SO1304
+Shibis,shibis,78,72,150,#N/A
+Taleex,taleex,79,0,79,SO1403
+Waaberi,waaberi,79,74,153,#N/A
+Waajid,waajid,78,68,146,SO2504
+Wadajir,wadajir,79,78,157,#N/A
+Wanla Weyn,wanla_weyn,79,69,148,SO2307
+Wardhiigleey,wardhiigleey,79,78,157,#N/A
+Xudun,xudun,78,74,152,SO1404
+Xudur,xudur,79,76,155,SO2501
+Yaaqshiid,yaaqshiid,0,75,75,#N/A
+Zeylac,zeylac,79,71,150,SO1104

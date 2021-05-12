@@ -25,7 +25,7 @@ library(plotly)
 library(DT)
 # library(tmaptools)
 # library(tmap)
-# library(sf)
+library(sf)
 library(tidyverse)
 # library(writexl)
 # library(knitr)
@@ -40,15 +40,15 @@ library(tidyverse)
 
 
 source("Functions.R")
-url <-"https://kc.humanitarianresponse.info/api/v1/data.csv" ## Do not change this 
-kobo_user <-  "reachsomalia" ## kobo user 
-kobo_pw <- "ReachSom2020" ## kobo password 
-d_formlist_csv <- as.data.frame(kobohr_getforms_csv (url,kobo_user, kobo_pw)) ## Run this to get the list of deployed tool 
-form_id <-  "140646" ## Check the d_formlist_csv dataframe to get the correct form id
-dataurl<- paste0("https://kc.humanitarianresponse.info/api/v1/data/",form_id,".csv") ## Do not change this 
-
-df <- download_data(dataurl,kobo_user,kobo_pw)
-colnames(df) <- gsub('^(?:[^/]*/)*(.*)', '\\1', colnames(df)) ## Removing group names from header
+# url <-"https://kc.humanitarianresponse.info/api/v1/data.csv" ## Do not change this 
+# kobo_user <-  "reachsomalia" ## kobo user 
+# kobo_pw <- "ReachSom2020" ## kobo password 
+# d_formlist_csv <- as.data.frame(kobohr_getforms_csv (url,kobo_user, kobo_pw)) ## Run this to get the list of deployed tool 
+# form_id <-  "140646" ## Check the d_formlist_csv dataframe to get the correct form id
+# dataurl<- paste0("https://kc.humanitarianresponse.info/api/v1/data/",form_id,".csv") ## Do not change this 
+# 
+# df <- download_data(dataurl,kobo_user,kobo_pw)
+# colnames(df) <- gsub('^(?:[^/]*/)*(.*)', '\\1', colnames(df)) ## Removing group names from header
 
 ```
 
@@ -69,6 +69,7 @@ data_all <- read.csv("input/rawdata.csv",stringsAsFactors = F)
 data <- head(data_all,9500)
 target_region <- read.csv("input/target_region.csv",stringsAsFactors = F)
 target_district <- read.csv("input/target_district.csv",stringsAsFactors = F)
+target_settelment_hc <- read.csv("input/target_settelment_hc.csv",stringsAsFactors = F)
 
 ```
 
@@ -193,7 +194,7 @@ p1
 All {data-navmenu="Regions"}
 =====================================
 
-### Surveys submission overview - Partner
+### Surveys submission overview - Region
 
 ```{r}
 
@@ -221,7 +222,7 @@ All {data-navmenu="Regions"}
 IDP {data-navmenu="Regions"}
 =====================================
 
-### Surveys submission overview - Partner
+### Surveys submission overview - Region
 
 ```{r}
 
@@ -251,7 +252,7 @@ IDP {data-navmenu="Regions"}
 Non IDP {data-navmenu="Regions"}
 =====================================
 
-### Surveys submission overview - Partner
+### Surveys submission overview - Region
 
 ```{r}
 
@@ -456,52 +457,170 @@ DT::renderDataTable({
   
 ```
 
-<!--
-Maps {}
+NC {data-navmenu="Settlements"}
 =====================================
 
-Column {data-height = 200}
--------------------------------------------------
+Column {.sidebar}
+-------------------------------------
+```{r}
 
-### Map 
 
-```{r, fig.height=9, fig.width=20}
 
-df2 <- read.csv("input/gps.csv",stringsAsFactors = F)
-df2 %>% mutate(
-  map_label = paste(region, "_", district, "_", settlement),
-          circle_uuid = X_uuid ) %>%  
-  leaflet() %>% addTiles() %>% 
-  addCircleMarkers(lng= ~X_observation_gps_longitude,
-                   lat= ~X_observation_gps_latitude,
-                   clusterOptions = markerClusterOptions(),
-                   popup = ~ map_label,
-                   label = ~ map_label,
-                   group = 'circle_uuid',
-                   
-                   ) %>%
-  addResetMapButton() %>%
+selectInput("DistrictFilter",
+            "District:",
+            choices = c(unique(data$district)))
+
+```
+
+
+Column {}
+-------------------------------------
+```{r}
+
+
+
+DT::renderDataTable({
+     
+          datatable(
+    data= data %>% filter(district == input$DistrictFilter )%>% group_by(settlement) %>% 
+    summarise(Submission = n()) %>% 
+    left_join(target_settelment_hc %>% 
+    select(settlement = P_CODE, Target = target)) %>%  
+    mutate( Remaining = Target - Submission, 
+           `Completion (%)` = round(Submission/Target * 100 , digits = 2)  ) ,
+    filter = "top",
+    options = list(pageLength=25),
+    rownames = F
   
-  addSearchFeatures(
-    targetGroups = 'district',
-    options = searchFeaturesOptions(
-      zoom=12, openPopup = TRUE, firstTipSubmit = TRUE,
-      autoCollapse = FALSE, hideMarkerOnCollapse = TRUE )
-  ) %>%
+) %>%
+      formatStyle("Completion (%)", backgroundColor = styleInterval(
+      c(25,50,75), 
+      c("red","orange","yellow","lightgreen")))
+        
   
-  addMiniMap(toggleDisplay = TRUE) %>%
-  addTiles() %>% 
-  addMeasure(position = "bottomleft", 
-             primaryLengthUnit = "meters",
-             primaryAreaUnit = "sqmeters",
-             activeColor = "#3D535D",
-             completedColor = "#7D4479")
- 
+  })
+
   
+  
+```
+
+
+Coverage map {}
+=====================================
+
+```{r include=FALSE}
+#Load shapefile
+base_map <- st_read("input/som-administrative-divisions-shapefiles/Som_Admbnda_Adm2_UNDP.shp")
+
+#Load shapefile
+
+base_map <- base_map %>% select(Shape_Leng, Shape_Area, admin2Pcod, admin2Name, geometry)
+target_district <-read.csv("input/target_district.csv",stringsAsFactors = F)
+base_map <- left_join(base_map, target_district)
+data_all <- read.csv("input/rawdata.csv",stringsAsFactors = F) 
+data <- data_all
+# data <- head(data_all,1500)
+
+data_summary <- data %>%  group_by(District_xml=district) %>% 
+    summarise(conducted = n()) 
+
+district_to_exclude <- c("Adan Yabaal", "Badhaadhe", "Baraawe", "Bu'aale", "Bulo Burto", "Cadale", "Caluula", "Ceel Buur", "Ceel Dheer", "Jalalaqsi", "Jamaame", "Kurtunwaarey", "Qandala", "Qansax Dheere", "Rab Dhuure", "Saakow", "Sablaale", "Tayeeglow", "Xarardheere")
+
+
+# base_map <- base_map %>% filter(admin2Name %in% district_to_exclude)
+
+
+base_map <- left_join(base_map, data_summary)
+
+base_map$percent_quota_fulfilment <- round((base_map$conducted / base_map$target)*100 , digit = 2 )
+
+# base_map %>% filter(is.na(District_xml)) %>% select(admin2Name,admin2Pcod,District,District_xml) %>% View()
+
+base_map <- base_map %>% mutate(
+  percent_quota_fulfilment = ifelse(is.na(percent_quota_fulfilment),500,percent_quota_fulfilment)
+)
+#Load data monitoring sheet
 
 
 
 ```
 
--->
+
+Column {.sidebar data-width=200}
+-------------------------------------
+
+```{r}
+minvalue3 <- floor(min(base_map$percent_quota_fulfilment, na.rm = TRUE))
+maxvalue3 <- ceiling(max(base_map$percent_quota_fulfilment, na.rm = TRUE))
+
+sliderInput("rangevalues3",
+  label = "Percentage of quota fulfilment per stratum:",
+  min = minvalue3, max = maxvalue3,
+  value = c(minvalue3, maxvalue3)
+)
+
+
+
+```
+
+
+  
+  
+Column {data-width=400}
+-------------------------------------
+
+```{r}
+
+pal3 <- colorBin(
+  palette = c("red","yellow", "springgreen3","purple"), domain = base_map$percent_quota_fulfilment,
+  bins = c(0,60,100,500,Inf)
+)
+
+labels <- c("0-59", "60-99", ">100","Non covered")
+
+base_map$labels3 <- paste0(
+  "<strong> Locality (EN): </strong> ",
+  base_map$admin2Name , "<br/> ",
+  "<strong> Percent quota fulfilment: </strong> ",
+  base_map$percent_quota_fulfilment, "<br/> "
+
+) %>%
+  lapply(htmltools::HTML)
+
+mapFiltered3 <- reactive({
+  map_filter <- which(base_map$percent_quota_fulfilment >= input$rangevalues3[1] &
+                        base_map$percent_quota_fulfilment <= input$rangevalues3[2] )
+    base_map[map_filter, ]
+})
+
+renderLeaflet({
+  if (nrow(mapFiltered3 ()) == 0) {
+    return(NULL)
+  }
+
+  leaflet(mapFiltered3 ()) %>%
+    addTiles() %>%
+    setView(lng = 46.2176, lat = 9.5000, zoom = 5) %>%
+    addPolygons(
+      fillColor = ~ pal3(percent_quota_fulfilment),
+      color = "white",
+      weight = 2,
+      fillOpacity = 1,
+      label = ~labels3,
+      highlight = highlightOptions(
+        color = "black",
+        bringToFront = TRUE
+      )
+    ) %>%
+    leaflet::addLegend(
+      pal = pal3, values = ~ percent_quota_fulfilment,
+      opacity = 0.8, 
+      title = "Percent quota fulfilment per stratum (accepted surveys divided by quota)",
+      labFormat = function(type, cuts, p) { paste0(labels)}
+    )
+})
+
+```
+
+
 
